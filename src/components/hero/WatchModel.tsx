@@ -330,22 +330,18 @@ function useWatchGeometry() {
 
     const upperPath: [number, number, number][] = [
       [0, 1.0, -0.02],
-      [0, 1.46, -0.14],
-      [0, 1.86, -0.5],
-      [0, 2.06, -0.96],
-      [0, 2.0, -1.42],
-      [0, 1.78, -1.72],
-      [0, 1.5, -1.86],
+      [0, 1.42, -0.18],
+      [0, 1.76, -0.58],
+      [0, 1.93, -1.06],
+      [0, 1.88, -1.5],
     ];
 
     const lowerPath: [number, number, number][] = [
       [0, -1.0, -0.02],
-      [0, -1.46, -0.14],
-      [0, -1.88, -0.5],
-      [0, -2.08, -0.96],
-      [0, -2.02, -1.42],
-      [0, -1.8, -1.72],
-      [0, -1.52, -1.86],
+      [0, -1.42, -0.18],
+      [0, -1.78, -0.6],
+      [0, -1.95, -1.08],
+      [0, -1.9, -1.52],
     ];
 
     /* ExtrudeGeometry maps UVs from world position, which on a band
@@ -661,7 +657,7 @@ export function WatchModel({ quality }: { quality: "high" | "low" }) {
       <PartGroup id="movement">
         {/* The caliber runs: geared train, stepping escape wheel and an
             oscillating balance on its hairspring. */}
-        <group position={[0, 0, -0.175]}>
+        <group position={[0, 0, -0.26]}>
           <Movement />
         </group>
       </PartGroup>

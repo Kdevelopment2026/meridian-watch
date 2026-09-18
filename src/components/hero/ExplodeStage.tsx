@@ -93,6 +93,18 @@ function StudioEnvironment() {
         target={[0, 0, 0]}
       />
 
+      {/* A hard, narrow source raking in from upper left. Broad soft
+          light alone flattens a movement; this is what puts an edge on
+          every bridge and wheel that stands off the plate. */}
+      <Lightformer
+        form="rect"
+        intensity={3.6}
+        color="#fffaf0"
+        position={[-3.4, 4.2, 3.2]}
+        scale={[0.35, 2.4, 1]}
+        target={[0, 0, 0]}
+      />
+
       {/* A ring behind, for the catchlight that rides the crystal dome. */}
       <Lightformer
         form="ring"
@@ -397,6 +409,7 @@ export function ExplodeStage({
 }: ExplodeStageProps) {
   return (
     <Canvas
+      shadows="soft"
       className="stage-canvas"
       frameloop={
         reducedMotion ? "demand" : paused ? "never" : "always"

@@ -82,7 +82,18 @@ function gearShape(radius: number, teeth: number, spokes: number): Shape {
 }
 
 /** An outline with soft corners, for a bridge or a cock. */
-function plateShape(points: [number, number][], radius = 0.06): Shape {
+function plateShape(input: [number, number][], radius = 0.06): Shape {
+  // An outline wound clockwise extrudes with its normals pointing
+  // inward, and the part comes out black. Make the winding consistent
+  // before anything else happens to it.
+  let area = 0;
+  for (let i = 0; i < input.length; i += 1) {
+    const [x1, y1] = input[i];
+    const [x2, y2] = input[(i + 1) % input.length];
+    area += x1 * y2 - x2 * y1;
+  }
+  const points = area < 0 ? [...input].reverse() : input;
+
   const shape = new Shape();
   const count = points.length;
   for (let i = 0; i < count; i += 1) {
@@ -129,24 +140,31 @@ function useMovementMaterials() {
     return {
       plate: new MeshStandardMaterial({
         map: perlage,
-        color: "#aeb3b5",
+        color: "#b6bbbd",
         metalness: 0.92,
         roughness: 0.44,
         envMapIntensity: 1,
       }),
       bridge: new MeshStandardMaterial({
         map: cotes,
-        color: "#989ea1",
+        color: "#b6bbbe",
         metalness: 0.95,
         roughness: 0.4,
         envMapIntensity: 1.15,
       }),
       gilt: new MeshStandardMaterial({
         map: gilt,
-        color: "#a68d5c",
+        color: "#b39a68",
         metalness: 1,
-        roughness: 0.34,
-        envMapIntensity: 1.15,
+        roughness: 0.3,
+        envMapIntensity: 1.3,
+      }),
+      // The crown and ratchet wheels are steel, not gold.
+      wheelSteel: new MeshStandardMaterial({
+        color: "#9aa0a3",
+        metalness: 1,
+        roughness: 0.32,
+        envMapIntensity: 1.2,
       }),
       steel: new MeshPhysicalMaterial({
         color: "#d9dcde",
@@ -191,8 +209,8 @@ interface WheelSpec {
 }
 
 const WHEELS: WheelSpec[] = [
-  { key: "ratchet", x: -0.02, y: 0.36, z: 0.09, radius: 0.28, teeth: 62, spokes: 0, rate: 0.045 },
-  { key: "crown", x: -0.38, y: 0.3, z: 0.09, radius: 0.16, teeth: 36, spokes: 0, rate: -0.079 },
+  { key: "ratchet", x: -0.02, y: 0.36, z: 0.175, radius: 0.28, teeth: 62, spokes: 0, rate: 0.045 },
+  { key: "crown", x: -0.38, y: 0.3, z: 0.175, radius: 0.16, teeth: 36, spokes: 0, rate: -0.079 },
   { key: "centre", x: 0.06, y: -0.02, z: 0.05, radius: 0.25, teeth: 56, spokes: 5, rate: -0.09 },
   { key: "third", x: 0.36, y: 0.12, z: 0.05, radius: 0.16, teeth: 36, spokes: 4, rate: 0.14 },
   { key: "fourth", x: 0.38, y: -0.2, z: 0.05, radius: 0.13, teeth: 30, spokes: 4, rate: -0.42 },
@@ -236,7 +254,15 @@ function Wheels({ materials }: { materials: MovementMaterials }) {
               refs.current[wheel.key] = node;
             }}
           >
-            <mesh geometry={geometries[wheel.key]} material={materials.gilt} />
+            <mesh
+              castShadow
+              geometry={geometries[wheel.key]}
+              material={
+                wheel.key === "ratchet" || wheel.key === "crown"
+                  ? materials.wheelSteel
+                  : materials.gilt
+              }
+            />
           </group>
           {/* Arbor, running in its jewel */}
           <mesh
@@ -364,15 +390,15 @@ function Escapement({ materials }: { materials: MovementMaterials }) {
 
 function Jewels({ materials }: { materials: MovementMaterials }) {
   const seats: [number, number, number][] = [
-    [0.06, -0.02, 0.078],
-    [0.36, 0.12, 0.078],
-    [0.38, -0.2, 0.078],
+    [0.06, -0.02, 0.108],
+    [0.36, 0.12, 0.108],
+    [0.38, -0.2, 0.108],
     [0.3, -0.44, 0.072],
     [0.12, -0.5, 0.095],
-    [-0.2, -0.36, 0.125],
-    [-0.02, 0.36, 0.115],
-    [-0.46, -0.1, 0.06],
-    [0.5, 0.36, 0.06],
+    [-0.2, -0.36, 0.155],
+    [-0.02, 0.36, 0.215],
+    [-0.46, -0.1, 0.08],
+    [0.5, 0.36, 0.08],
   ];
 
   return (
@@ -393,9 +419,9 @@ function Jewels({ materials }: { materials: MovementMaterials }) {
 
 function Screws({ materials }: { materials: MovementMaterials }) {
   const seats: [number, number, number][] = [
-    [-0.58, 0.44, 0.1],
-    [0.42, 0.5, 0.1],
-    [0.62, -0.08, 0.1],
+    [-0.58, 0.44, 0.135],
+    [0.42, 0.5, 0.135],
+    [0.62, -0.08, 0.135],
     [-0.62, -0.26, 0.1],
     [0.06, 0.62, 0.1],
     [-0.36, -0.58, 0.1],
@@ -427,24 +453,24 @@ export function Movement() {
   const bridges = useMemo(() => {
     const barrel = plateShape(
       [
-        [-0.72, 0.1],
-        [-0.56, 0.5],
-        [-0.1, 0.66],
-        [0.26, 0.56],
-        [0.3, 0.3],
-        [-0.04, 0.16],
-        [-0.34, 0.06],
+        [-0.7, 0.16],
+        [-0.54, 0.5],
+        [-0.16, 0.62],
+        [0.1, 0.5],
+        [0.08, 0.28],
+        [-0.16, 0.2],
+        [-0.38, 0.1],
       ],
       0.09,
     );
     const train = plateShape(
       [
-        [0.14, 0.34],
-        [0.56, 0.42],
-        [0.68, 0.08],
-        [0.56, -0.34],
-        [0.28, -0.4],
-        [0.2, -0.1],
+        [0.2, 0.4],
+        [0.58, 0.44],
+        [0.66, 0.1],
+        [0.54, -0.3],
+        [0.3, -0.34],
+        [0.28, -0.04],
       ],
       0.08,
     );
@@ -459,11 +485,11 @@ export function Movement() {
       0.06,
     );
     const options = {
-      depth: 0.05,
+      depth: 0.075,
       bevelEnabled: true,
-      bevelThickness: 0.008,
-      bevelSize: 0.008,
-      bevelSegments: 2,
+      bevelThickness: 0.012,
+      bevelSize: 0.012,
+      bevelSegments: 3,
     } as const;
     return {
       barrel: new ExtrudeGeometry(barrel, options),
@@ -474,8 +500,32 @@ export function Movement() {
 
   return (
     <group>
+      {/*
+        One hard source of its own, close in and raking across the
+        plate. A movement only reads as layers if the raised parts
+        throw something, so this light casts and everything above the
+        plate catches it.
+      */}
+      <directionalLight
+        castShadow
+        position={[-1.7, 2.1, 2.6]}
+        intensity={0.95}
+        color="#fff6e6"
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-radius={3}
+        shadow-bias={-0.0009}
+        shadow-normalBias={0.012}
+        shadow-camera-near={0.5}
+        shadow-camera-far={9}
+        shadow-camera-left={-1.3}
+        shadow-camera-right={1.3}
+        shadow-camera-top={1.3}
+        shadow-camera-bottom={-1.3}
+      />
+
       {/* Main plate */}
-      <mesh material={materials.plate} rotation={[Math.PI / 2, 0, 0]}>
+      <mesh material={materials.plate} rotation={[Math.PI / 2, 0, 0]} receiveShadow>
         <cylinderGeometry args={[PLATE_R, PLATE_R, 0.05, 96]} />
       </mesh>
       <mesh material={materials.steel}>
@@ -490,10 +540,24 @@ export function Movement() {
       <Wheels materials={materials} />
       <Escapement materials={materials} />
 
-      {/* Bridges laid over the train */}
-      <mesh geometry={bridges.barrel} material={materials.bridge} position={[0, 0, 0.055]} />
-      <mesh geometry={bridges.train} material={materials.bridge} position={[0, 0, 0.055]} />
-      <mesh geometry={bridges.cock} material={materials.bridge} position={[0, 0, 0.075]} />
+      {/* Bridges, standing proud of the train and throwing real
+          shadows down onto the plate and onto each other. */}
+      {(
+        [
+          ["barrel", bridges.barrel, 0.085],
+          ["train", bridges.train, 0.085],
+          ["cock", bridges.cock, 0.115],
+        ] as const
+      ).map(([key, geometry, z]) => (
+        <mesh
+          key={key}
+          geometry={geometry}
+          material={materials.bridge}
+          position={[0, 0, z]}
+          castShadow
+          receiveShadow
+        />
+      ))}
 
       <Jewels materials={materials} />
       <Screws materials={materials} />
