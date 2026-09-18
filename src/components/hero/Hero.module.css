@@ -31,38 +31,10 @@
   cursor: default;
 }
 
-/* The room the watch sits in: a warm haze up in one corner and a cool
-   fall-off everywhere else, taken from the reference photography and
-   kept in the site's own palette. */
-.backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      62% 52% at 14% 16%,
-      var(--haze-warm) 0%,
-      rgb(198 154 92 / 0.05) 38%,
-      transparent 72%
-    ),
-    radial-gradient(
-      70% 60% at 82% 76%,
-      var(--haze-cool) 0%,
-      transparent 68%
-    ),
-    radial-gradient(
-      90% 80% at 50% 38%,
-      var(--color-graphite) 0%,
-      var(--color-void) 46%,
-      var(--color-pitch) 100%
-    );
-}
-
 .stage {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: var(--z-stage);
 }
 
 /* A slow radial falloff so the watch sits in light and the edges of
@@ -70,7 +42,7 @@
 .vignette {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 1;
   pointer-events: none;
   background:
     radial-gradient(
@@ -86,7 +58,7 @@
 .grain {
   position: absolute;
   inset: -10%;
-  z-index: 3;
+  z-index: 2;
   pointer-events: none;
   opacity: 0.32;
   mix-blend-mode: overlay;

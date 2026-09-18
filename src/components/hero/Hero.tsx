@@ -159,7 +159,6 @@ export function Hero() {
           <ExplodeStill />
         ) : (
           <div ref={frame} className={styles.frame}>
-            <div className={styles.backdrop} />
             <div className={styles.stage}>
               <ExplodeStage
                 reducedMotion={false}
