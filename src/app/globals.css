@@ -88,7 +88,7 @@ canvas {
 .type-display {
   font-family: var(--font-display);
   font-optical-sizing: auto;
-  font-variation-settings: "SOFT" 0, "WONK" 1;
+  font-variation-settings: "WONK" 1;
   font-weight: 300;
   line-height: var(--leading-display);
   letter-spacing: var(--tracking-display);

@@ -6,10 +6,14 @@ import { CanvasTexture, LinearFilter, SRGBColorSpace } from "three";
  * signed — the watch carries no name, which is the point.
  */
 
-const SIZE = 1024;
 
-function sunburst(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
-  const spokes = 320;
+function sunburst(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  spokes: number,
+) {
   ctx.save();
   ctx.globalCompositeOperation = "overlay";
   for (let i = 0; i < spokes; i += 1) {
@@ -25,8 +29,8 @@ function sunburst(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: numb
   ctx.restore();
 }
 
-function grain(ctx: CanvasRenderingContext2D) {
-  const image = ctx.getImageData(0, 0, SIZE, SIZE);
+function grain(ctx: CanvasRenderingContext2D, size: number) {
+  const image = ctx.getImageData(0, 0, size, size);
   const { data } = image;
   for (let i = 0; i < data.length; i += 4) {
     const n = (Math.random() - 0.5) * 9;
@@ -37,15 +41,15 @@ function grain(ctx: CanvasRenderingContext2D) {
   ctx.putImageData(image, 0, 0);
 }
 
-export function createDialTexture(): CanvasTexture {
+export function createDialTexture(size = 1024): CanvasTexture {
   const canvas = document.createElement("canvas");
-  canvas.width = SIZE;
-  canvas.height = SIZE;
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext("2d");
   if (!ctx) return new CanvasTexture(canvas);
 
-  const c = SIZE / 2;
-  const outer = SIZE * 0.5;
+  const c = size / 2;
+  const outer = size * 0.5;
 
   /*
     A sunburst grey that opens up under the light at the centre and
@@ -60,26 +64,26 @@ export function createDialTexture(): CanvasTexture {
   base.addColorStop(0.88, "#212326");
   base.addColorStop(1, "#131415");
   ctx.fillStyle = base;
-  ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.fillRect(0, 0, size, size);
 
-  sunburst(ctx, c, c, outer);
+  sunburst(ctx, c, c, outer, size >= 1024 ? 320 : 180);
 
   // A soft directional sheen, as if the dial is turned into the key.
-  const sheen = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+  const sheen = ctx.createLinearGradient(0, 0, size, size);
   sheen.addColorStop(0, "rgba(255,252,246,0.10)");
   sheen.addColorStop(0.45, "rgba(255,252,246,0.02)");
   sheen.addColorStop(1, "rgba(0,0,0,0.14)");
   ctx.fillStyle = sheen;
-  ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.fillRect(0, 0, size, size);
 
   // Deepen the outer edge where the dial turns down into the rehaut.
   const edge = ctx.createRadialGradient(c, c, outer * 0.72, c, c, outer);
   edge.addColorStop(0, "rgba(0,0,0,0)");
   edge.addColorStop(1, "rgba(0,0,0,0.6)");
   ctx.fillStyle = edge;
-  ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.fillRect(0, 0, size, size);
 
-  grain(ctx);
+  grain(ctx, size);
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -92,9 +96,9 @@ export function createDialTexture(): CanvasTexture {
 
 /** Alligator scales for the strap: a run of rounded tiles that grow
     toward the lug end, lit from above like polished leather. */
-export function createCrocTexture(): CanvasTexture {
-  const w = 512;
-  const h = 1024;
+export function createCrocTexture(scale = 1): CanvasTexture {
+  const w = Math.round(512 * scale);
+  const h = Math.round(1024 * scale);
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -163,17 +167,17 @@ export function createCrocTexture(): CanvasTexture {
 }
 
 /** Brushed circular grain for the movement plate. */
-export function createPlateTexture(): CanvasTexture {
+export function createPlateTexture(size = 512): CanvasTexture {
   const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 512;
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext("2d");
   if (!ctx) return new CanvasTexture(canvas);
-  const c = 256;
+  const c = size / 2;
   ctx.fillStyle = "#8d8a84";
-  ctx.fillRect(0, 0, 512, 512);
-  for (let i = 0; i < 2600; i += 1) {
-    const r = Math.random() * 250;
+  ctx.fillRect(0, 0, size, size);
+  for (let i = 0; i < (size >= 512 ? 2600 : 1100); i += 1) {
+    const r = Math.random() * (c - 6);
     const a = Math.random() * Math.PI * 2;
     const len = 0.05 + Math.random() * 0.25;
     ctx.strokeStyle = `rgba(255,255,255,${Math.random() * 0.09})`;

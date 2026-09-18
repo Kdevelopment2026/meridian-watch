@@ -16,8 +16,7 @@ function finish(texture: CanvasTexture): CanvasTexture {
 }
 
 /** Perlage: overlapping circular graining, struck in rows. */
-export function createPerlageTexture(): CanvasTexture {
-  const size = 1024;
+export function createPerlageTexture(size = 1024): CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -71,8 +70,7 @@ export function createPerlageTexture(): CanvasTexture {
 }
 
 /** Cotes de Geneve: broad parallel bands, each lit across its width. */
-export function createCotesTexture(): CanvasTexture {
-  const size = 512;
+export function createCotesTexture(size = 512): CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -95,7 +93,7 @@ export function createCotesTexture(): CanvasTexture {
   }
 
   // Lengthwise tooling within each band.
-  for (let i = 0; i < 900; i += 1) {
+  for (let i = 0; i < (size >= 512 ? 900 : 380); i += 1) {
     ctx.strokeStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
     ctx.lineWidth = 0.7;
     const y = Math.random() * size;
@@ -112,8 +110,7 @@ export function createCotesTexture(): CanvasTexture {
 }
 
 /** Brushed gilt for the wheels, grained around the rim. */
-export function createGiltTexture(): CanvasTexture {
-  const size = 512;
+export function createGiltTexture(size = 512): CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -123,7 +120,7 @@ export function createGiltTexture(): CanvasTexture {
   const c = size / 2;
   ctx.fillStyle = "#9d8046";
   ctx.fillRect(0, 0, size, size);
-  for (let i = 0; i < 2400; i += 1) {
+  for (let i = 0; i < (size >= 512 ? 2400 : 1000); i += 1) {
     const r = Math.random() * c;
     const a = Math.random() * Math.PI * 2;
     const len = 0.06 + Math.random() * 0.3;

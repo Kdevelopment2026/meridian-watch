@@ -130,12 +130,13 @@ function plateShape(input: [number, number][], radius = 0.06): Shape {
 
 function useMovementMaterials() {
   return useMemo(() => {
-    const perlage = createPerlageTexture();
-    const cotes = createCotesTexture();
+    const fine = stage.quality === "high";
+    const perlage = createPerlageTexture(fine ? 1024 : 512);
+    const cotes = createCotesTexture(fine ? 512 : 256);
     cotes.repeat.set(1.6, 1.6);
     cotes.wrapS = RepeatWrapping;
     cotes.wrapT = RepeatWrapping;
-    const gilt = createGiltTexture();
+    const gilt = createGiltTexture(fine ? 512 : 256);
 
     return {
       plate: new MeshStandardMaterial({

@@ -330,12 +330,12 @@ export function ExplodeStage({
 }: ExplodeStageProps) {
   return (
     <Canvas
-      shadows="soft"
+      shadows={quality === "high" ? "soft" : false}
       className="stage-canvas"
       frameloop={
         reducedMotion ? "demand" : paused ? "never" : "always"
       }
-      dpr={quality === "high" ? [1, 1.75] : [1, 1.25]}
+      dpr={quality === "high" ? [1, 1.75] : [1, 1.1]}
       gl={{
         antialias: true,
         alpha: true,

@@ -79,16 +79,37 @@ export function Collection() {
   const hovered = useRef(-1);
   const [live, setLive] = useState(false);
 
-  // The live row needs WebGL, and it turns, so it is not offered to
-  // anyone who has asked for less motion.
+  /*
+    The live row needs WebGL, and it turns, so it is not offered to
+    anyone who has asked for less motion.
+
+    It is also not offered on a phone. The hero already holds a WebGL
+    context open there, and a second one rendering four more watches is
+    the difference between a page that scrolls and one that stutters.
+    Small screens get the drawn dials instead, which is what a browser
+    without WebGL gets too.
+  */
   useEffect(() => {
-    if (prefersReducedMotion()) return;
-    try {
-      const probe = document.createElement("canvas");
-      setLive(Boolean(probe.getContext("webgl2") ?? probe.getContext("webgl")));
-    } catch {
-      setLive(false);
-    }
+    const compact = window.matchMedia("(max-width: 900px)");
+
+    const decide = () => {
+      if (prefersReducedMotion() || compact.matches) {
+        setLive(false);
+        return;
+      }
+      try {
+        const probe = document.createElement("canvas");
+        setLive(
+          Boolean(probe.getContext("webgl2") ?? probe.getContext("webgl")),
+        );
+      } catch {
+        setLive(false);
+      }
+    };
+
+    decide();
+    compact.addEventListener("change", decide);
+    return () => compact.removeEventListener("change", decide);
   }, []);
 
   return (

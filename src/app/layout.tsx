@@ -8,7 +8,10 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-fraunces",
-  axes: ["SOFT", "WONK", "opsz"],
+  // WONK carries the character; opsz drives font-optical-sizing.
+  // SOFT was requested and then always set to its default, so it was
+  // only ever adding weight to the file.
+  axes: ["WONK", "opsz"],
 });
 
 const archivo = Archivo({

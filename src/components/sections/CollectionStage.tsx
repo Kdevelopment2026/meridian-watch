@@ -250,7 +250,7 @@ export function CollectionStage({
     <div ref={host} style={{ position: "absolute", inset: 0 }}>
       <Canvas
         frameloop={live ? "always" : "never"}
-        dpr={[1, 1.6]}
+        dpr={[1, 1.5]}
         gl={{
           antialias: true,
           alpha: true,

@@ -85,7 +85,8 @@ function useWatchMaterials(quality: "high" | "low") {
       envMapIntensity: 2.4,
     });
 
-    const croc = createCrocTexture();
+    const fine = quality === "high";
+    const croc = createCrocTexture(fine ? 1 : 0.5);
     croc.wrapS = RepeatWrapping;
     croc.wrapT = RepeatWrapping;
     croc.repeat.set(2.2, 9);
@@ -129,7 +130,7 @@ function useWatchMaterials(quality: "high" | "low") {
     });
 
     const plate = new MeshStandardMaterial({
-      map: createPlateTexture(),
+      map: createPlateTexture(fine ? 512 : 256),
       color: "#9aa1a3",
       metalness: 0.9,
       roughness: 0.4,
@@ -137,7 +138,7 @@ function useWatchMaterials(quality: "high" | "low") {
     });
 
     const dialFace = new MeshPhysicalMaterial({
-      map: createDialTexture(),
+      map: createDialTexture(fine ? 1024 : 512),
       metalness: 0.5,
       roughness: 0.34,
       clearcoat: 0.55,
