@@ -5,17 +5,11 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import {
   AdaptiveDpr,
+  ContactShadows,
   Environment,
   Lightformer,
-  MeshReflectorMaterial,
 } from "@react-three/drei";
-import {
-  ACESFilmicToneMapping,
-  CanvasTexture,
-  Group,
-  Mesh,
-  Vector3,
-} from "three";
+import { ACESFilmicToneMapping, Group, Vector3 } from "three";
 
 import { WatchModel } from "./WatchModel";
 import {
@@ -318,69 +312,32 @@ function CalloutProjector() {
 }
 
 /**
- * A radial mask, so the reflection fades out instead of ending at a
- * visible horizon.
+ * The shadow the watch drops onto the surface it is standing on. It
+ * grounds the object without putting anything behind it, and it fades
+ * away as the parts lift clear.
  */
-function useFadeMask() {
-  return useMemo(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = 256;
-    canvas.height = 256;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      const fade = ctx.createRadialGradient(128, 128, 8, 128, 128, 128);
-      fade.addColorStop(0, "#ffffff");
-      fade.addColorStop(0.42, "#9a9a9a");
-      fade.addColorStop(1, "#000000");
-      ctx.fillStyle = fade;
-      ctx.fillRect(0, 0, 256, 256);
-    }
-    return new CanvasTexture(canvas);
-  }, []);
-}
-
-/**
- * The dark polished surface the watch sits on. It carries the
- * reflection that makes the watch look placed rather than floating, and
- * it fades away as the parts lift clear.
- */
-function Tabletop({ quality }: { quality: "high" | "low" }) {
-  const mesh = useRef<Mesh>(null);
-  const mask = useFadeMask();
+function Ground() {
+  const shadow = useRef<Group>(null);
 
   useFrame(() => {
-    const surface = mesh.current;
-    if (!surface) return;
-    const material = surface.material as { opacity: number };
-    material.opacity = 0.85 * (1 - smoothstep(0.02, 0.4, stage.progress));
-    surface.visible = material.opacity > 0.01;
+    const node = shadow.current;
+    if (!node) return;
+    const fade = 1 - smoothstep(0.02, 0.4, stage.progress);
+    node.visible = fade > 0.02;
+    node.scale.setScalar(1 + (1 - fade) * 0.4);
   });
 
   return (
-    <mesh
-      ref={mesh}
-      position={[0, -1.32, 0]}
-      rotation={[-Math.PI / 2, 0, 0]}
-      visible={quality === "high"}
-    >
-      <planeGeometry args={[14, 14]} />
-      <MeshReflectorMaterial
-        transparent
-        alphaMap={mask}
-        opacity={0.85}
-        blur={[420, 140]}
-        resolution={quality === "high" ? 512 : 256}
-        mixBlur={1.4}
-        mixStrength={14}
-        depthScale={1}
-        minDepthThreshold={0.3}
-        maxDepthThreshold={1.2}
-        mirror={0.4}
-        color="#070706"
-        metalness={0.6}
-        roughness={0.85}
+    <group ref={shadow} position={[0, -1.34, 0]}>
+      <ContactShadows
+        opacity={0.62}
+        scale={9}
+        blur={2.6}
+        far={2.4}
+        resolution={256}
+        color="#000000"
       />
-    </mesh>
+    </group>
   );
 }
 
@@ -430,7 +387,7 @@ export function ExplodeStage({
       <Rig>
         <WatchModel quality={quality} />
       </Rig>
-      <Tabletop quality={quality} />
+      <Ground />
       <CalloutProjector />
 
       {/*
