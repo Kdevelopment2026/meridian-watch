@@ -1,0 +1,120 @@
+/*
+  Meridian design tokens.
+  Single source of truth for colour, type, spacing, motion and layout.
+  Components reference these variables; they never hardcode a hex or a
+  magic pixel value.
+*/
+
+:root {
+  /* ---------------------------------------------------------------
+     Colour — a warm near-black ground, aged brass as the only accent,
+     bone as the reading colour. Brass is deliberately rationed: it
+     appears on the metal in the 3D stage, on leader lines, and on the
+     edition numeral. It is never a button fill.
+     --------------------------------------------------------------- */
+  --color-pitch: #060504;
+  --color-void: #0c0a09;
+  --color-graphite: #16130f;
+  --color-graphite-lit: #211c16;
+  --color-hairline: #2b251d;
+  --color-steel-dim: #4a4238;
+  --color-steel: #7b7368;
+  --color-bone-dim: #b5ad9f;
+  --color-bone: #efe9de;
+  --color-brass: #a9813c;
+  --color-brass-lit: #e3c88d;
+
+  /* Alpha variants for glass surfaces and scrims */
+  --scrim-deep: rgb(6 5 4 / 0.92);
+  --scrim-mid: rgb(6 5 4 / 0.62);
+  --scrim-soft: rgb(6 5 4 / 0.28);
+  --glass: rgb(22 19 15 / 0.72);
+  --brass-veil: rgb(169 129 60 / 0.16);
+  --haze-warm: rgb(198 154 92 / 0.16);
+  --haze-cool: rgb(120 132 146 / 0.07);
+  --bone-veil: rgb(239 233 222 / 0.08);
+
+  /* ---------------------------------------------------------------
+     Type — Fraunces carries the voice (optical sizing, a touch of
+     wonk at display sizes). Archivo handles everything functional.
+     --------------------------------------------------------------- */
+  --font-display: var(--font-fraunces), "Fraunces", "Iowan Old Style",
+    "Palatino Linotype", Georgia, serif;
+  --font-body: var(--font-archivo), "Archivo", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+
+  --step--2: clamp(0.688rem, 0.66rem + 0.14vw, 0.75rem);
+  --step--1: clamp(0.8rem, 0.77rem + 0.16vw, 0.875rem);
+  --step-0: clamp(0.95rem, 0.91rem + 0.2vw, 1.0625rem);
+  --step-1: clamp(1.1rem, 1.03rem + 0.35vw, 1.3125rem);
+  --step-2: clamp(1.35rem, 1.2rem + 0.75vw, 1.75rem);
+  --step-3: clamp(1.7rem, 1.4rem + 1.5vw, 2.5rem);
+  --step-4: clamp(2.1rem, 1.5rem + 3vw, 3.75rem);
+  --step-5: clamp(2.6rem, 1.4rem + 6vw, 5.75rem);
+  --step-6: clamp(3.1rem, 1rem + 10.5vw, 9rem);
+
+  --leading-tight: 0.98;
+  --leading-display: 1.04;
+  --leading-snug: 1.3;
+  --leading-body: 1.62;
+  --leading-loose: 1.78;
+
+  --tracking-display: -0.022em;
+  --tracking-tight: -0.012em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.06em;
+  --tracking-label: 0.14em;
+
+  --measure-narrow: 34ch;
+  --measure: 58ch;
+  --measure-wide: 68ch;
+
+  /* ---------------------------------------------------------------
+     Space — a 4px base with a loose upper end. Luxury lives in the
+     gaps, so the section rhythm is unusually generous.
+     --------------------------------------------------------------- */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2.25rem;
+  --space-xl: 3.5rem;
+  --space-2xl: 5.5rem;
+  --space-3xl: 8rem;
+  --space-4xl: clamp(6rem, 14vh, 12rem);
+
+  --gutter: clamp(1.25rem, 5vw, 5.5rem);
+  --shell-max: 84rem;
+  --rule: 1px;
+
+  /* ---------------------------------------------------------------
+     Motion — slow, weighted, never bouncy.
+     --------------------------------------------------------------- */
+  --ease-out-slow: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-slow: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 220ms;
+  --dur-mid: 520ms;
+  --dur-slow: 900ms;
+  --dur-glacial: 1600ms;
+
+  /* Hero interaction geometry */
+  --pin-distance: 320vh;
+  --pin-distance-compact: 180vh;
+  --nav-height: 4.5rem;
+
+  --z-stage: 0;
+  --z-content: 10;
+  --z-callout: 20;
+  --z-nav: 40;
+  --z-overlay: 60;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 1ms;
+    --dur-mid: 1ms;
+    --dur-slow: 1ms;
+    --dur-glacial: 1ms;
+  }
+}

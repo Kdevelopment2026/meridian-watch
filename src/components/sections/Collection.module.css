@@ -1,0 +1,129 @@
+.section {
+  background-color: var(--color-pitch);
+  border-top: var(--rule) solid var(--color-hairline);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-m) var(--space-xl);
+  margin-bottom: var(--space-2xl);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--step-3);
+  color: var(--color-bone);
+  max-width: 18ch;
+}
+
+.note {
+  margin: 0;
+  max-width: 32ch;
+  color: var(--color-bone-dim);
+  line-height: var(--leading-loose);
+}
+
+/* The live row draws into one canvas laid over the cards, so the row
+   needs to be its own positioning context. */
+.row {
+  position: relative;
+}
+
+.list {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  padding: var(--space-l) var(--space-l) var(--space-m);
+  border-left: var(--rule) solid var(--color-hairline);
+  display: grid;
+  gap: var(--space-s);
+  align-content: start;
+}
+
+.item:last-child {
+  border-right: var(--rule) solid var(--color-hairline);
+}
+
+.figure {
+  margin: 0;
+  display: block;
+  width: 100%;
+  max-width: 11rem;
+  transition: transform var(--dur-slow) var(--ease-out-slow);
+}
+
+/* When the watch is rendered into the shared canvas the figure is only
+   a measured slot, so it has to hold its own space. */
+.figure[data-live="true"] {
+  aspect-ratio: 1;
+}
+
+.item:hover .figure:not([data-live="true"]) {
+  transform: translateY(-4px);
+}
+
+.figure svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ref {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--step-1);
+  color: var(--color-bone);
+  line-height: 1.2;
+}
+
+.desc {
+  font-size: var(--step--1);
+  color: var(--color-bone-dim);
+  line-height: var(--leading-snug);
+  margin: 0;
+}
+
+.status {
+  font-size: var(--step--2);
+  color: var(--color-steel);
+  letter-spacing: var(--tracking-wide);
+  margin: 0;
+}
+
+@media (max-width: 1000px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .item:nth-child(2n) {
+    border-right: var(--rule) solid var(--color-hairline);
+  }
+
+  .item:nth-child(n + 3) {
+    border-top: var(--rule) solid var(--color-hairline);
+  }
+}
+
+@media (max-width: 560px) {
+  .list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .item {
+    border-right: var(--rule) solid var(--color-hairline);
+  }
+
+  .item + .item {
+    border-top: var(--rule) solid var(--color-hairline);
+  }
+}

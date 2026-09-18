@@ -1,0 +1,52 @@
+.action {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.45em;
+  color: var(--color-bone);
+  font-size: var(--step-0);
+  text-decoration: none;
+  letter-spacing: var(--tracking-tight);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.action::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--rule);
+  background-color: var(--color-steel-dim);
+  transform-origin: left center;
+  transition:
+    background-color var(--dur-mid) var(--ease-out-slow),
+    transform var(--dur-mid) var(--ease-out-slow);
+}
+
+.action:hover::after,
+.action:focus-visible::after {
+  background-color: var(--color-brass-lit);
+  transform: scaleX(1);
+}
+
+.quiet {
+  color: var(--color-bone-dim);
+  font-size: var(--step--1);
+}
+
+.quiet::after {
+  background-color: transparent;
+}
+
+.quiet:hover,
+.quiet:focus-visible {
+  color: var(--color-bone);
+}
+
+.quiet:hover::after,
+.quiet:focus-visible::after {
+  background-color: var(--color-steel-dim);
+}

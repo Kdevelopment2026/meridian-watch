@@ -1,0 +1,86 @@
+.section {
+  background-color: var(--color-void);
+  text-align: center;
+}
+
+.inner {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-l);
+}
+
+.mark {
+  width: clamp(12rem, 26vw, 19rem);
+  height: auto;
+  color: var(--color-brass);
+}
+
+.numeral {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 4.6rem;
+  letter-spacing: -0.02em;
+  fill: var(--color-bone);
+}
+
+.ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.6;
+}
+
+.ringFaint {
+  fill: none;
+  stroke: var(--color-steel-dim);
+  stroke-width: 0.5;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--step-3);
+  color: var(--color-bone);
+  max-width: 18ch;
+}
+
+.body {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--color-bone-dim);
+  line-height: var(--leading-loose);
+}
+
+.facts {
+  margin-top: var(--space-2xl);
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xl);
+  text-align: left;
+}
+
+.fact {
+  display: grid;
+  gap: var(--space-2xs);
+  padding-top: var(--space-m);
+}
+
+.factLabel {
+  font-size: var(--step--2);
+  color: var(--color-steel);
+  letter-spacing: var(--tracking-wide);
+}
+
+.factValue {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--step-1);
+  color: var(--color-bone);
+  line-height: 1.25;
+}
+
+@media (max-width: 760px) {
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-l);
+  }
+}

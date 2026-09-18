@@ -1,0 +1,61 @@
+/*
+  Editorial photography treatment: desaturated, grained, and cropped to
+  one detail each rather than repeating the same full shot.
+*/
+
+.plate {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  background-color: var(--color-graphite);
+  isolation: isolate;
+}
+
+.image {
+  object-fit: cover;
+  filter: grayscale(0.82) contrast(1.08) brightness(0.96);
+  transform: scale(var(--plate-zoom, 1));
+  transition: transform var(--dur-glacial) var(--ease-out-slow);
+}
+
+.plate:hover .image {
+  transform: scale(calc(var(--plate-zoom, 1) * 1.03));
+}
+
+/* A vignette, so the crop reads as a lit surface and the caption holds. */
+.plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgb(6 5 4 / 0.82) 0%,
+    rgb(6 5 4 / 0.18) 38%,
+    rgb(6 5 4 / 0) 68%
+  );
+}
+
+.plate::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.22;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+.caption {
+  position: absolute;
+  left: var(--space-s);
+  right: var(--space-s);
+  bottom: var(--space-s);
+  margin: 0;
+  z-index: 2;
+  font-size: var(--step--2);
+  color: var(--color-bone-dim);
+  letter-spacing: var(--tracking-wide);
+}
