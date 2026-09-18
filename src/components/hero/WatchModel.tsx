@@ -294,28 +294,24 @@ function useWatchGeometry() {
         ),
       });
 
-    /* The two halves now meet behind the case and buckle together, so
-       the strap is a closed loop rather than two loose ends. Each half
-       rises over its lug, arcs back, and comes to the fastening at
-       roughly the height of the case centre. */
+    /* The whole strap, both halves: each rises over its lug and arcs
+       away behind the watch. They stop rather than doubling back — a
+       band this wide swept through a half-turn reads as a flat sheet
+       standing behind the case. */
     const upperPath: [number, number, number][] = [
       [0, 1.0, -0.02],
-      [0, 1.46, -0.18],
-      [0, 1.8, -0.6],
-      [0, 1.82, -1.08],
-      [0, 1.5, -1.44],
-      [0, 1.0, -1.58],
-      [0, 0.42, -1.6],
+      [0, 1.42, -0.18],
+      [0, 1.76, -0.58],
+      [0, 1.93, -1.06],
+      [0, 1.88, -1.5],
     ];
 
     const lowerPath: [number, number, number][] = [
       [0, -1.0, -0.02],
-      [0, -1.46, -0.18],
-      [0, -1.82, -0.6],
-      [0, -1.84, -1.08],
-      [0, -1.5, -1.44],
-      [0, -0.95, -1.58],
-      [0, -0.3, -1.6],
+      [0, -1.42, -0.18],
+      [0, -1.78, -0.6],
+      [0, -1.95, -1.08],
+      [0, -1.9, -1.52],
     ];
 
     /* ExtrudeGeometry maps UVs from world position, which on a band
@@ -342,21 +338,16 @@ function useWatchGeometry() {
     layStrapUvs(strapTop);
     layStrapUvs(strapBottom);
 
-    const seatOn = (path: [number, number, number][], along: number) => {
-      const tip = new Vector3(...path[path.length - 1]);
-      const before = new Vector3(...path[path.length - 2]);
-      const heading = tip.clone().sub(before).normalize();
-      return {
-        position: tip.clone().add(heading.clone().multiplyScalar(along)),
-        quaternion: new Quaternion().setFromUnitVectors(
-          new Vector3(0, 1, 0),
-          heading,
-        ),
-      };
+    const tip = new Vector3(...upperPath[upperPath.length - 1]);
+    const before = new Vector3(...upperPath[upperPath.length - 2]);
+    const heading = tip.clone().sub(before).normalize();
+    const buckle = {
+      position: tip.clone().add(heading.clone().multiplyScalar(0.19)),
+      quaternion: new Quaternion().setFromUnitVectors(
+        new Vector3(0, 1, 0),
+        heading,
+      ),
     };
-
-    const buckle = seatOn(upperPath, 0.16);
-    const keeper = seatOn(lowerPath, 0.1);
 
     return {
       caseBand,
@@ -370,7 +361,6 @@ function useWatchGeometry() {
       strapTop,
       strapBottom,
       buckle,
-      keeper,
     };
   }, []);
 }
@@ -527,27 +517,6 @@ function AppliedIndices({
   return <group>{markers}</group>;
 }
 
-/**
- * The keeper: the loop the free end of a strap is threaded back
- * through once the buckle is closed. It is what makes the two halves
- * read as fastened rather than as two pieces that happen to touch.
- */
-function Keeper({
-  materials,
-  seat,
-}: {
-  materials: Materials;
-  seat: { position: Vector3; quaternion: Quaternion };
-}) {
-  return (
-    <group position={seat.position} quaternion={seat.quaternion}>
-      <mesh rotation={[Math.PI / 2, 0, 0]} material={materials.leather}>
-        <torusGeometry args={[0.56, 0.034, 8, 40]} />
-      </mesh>
-    </group>
-  );
-}
-
 /** Pin buckle, seated on the end of the strap and aligned to its run. */
 function Buckle({
   materials,
@@ -632,7 +601,6 @@ export function WatchModel({ quality }: { quality: StageQuality }) {
         <mesh geometry={geo.strapTop} material={materials.leather} />
         <mesh geometry={geo.strapBottom} material={materials.leather} />
         <Buckle materials={materials} seat={geo.buckle} />
-        <Keeper materials={materials} seat={geo.keeper} />
       </PartGroup>
 
       <PartGroup id="caseback">
