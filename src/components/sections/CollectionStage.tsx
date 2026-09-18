@@ -13,6 +13,7 @@ import {
 } from "three";
 
 import { createDialTexture } from "@/lib/watch/dialTexture";
+import { disposeAll } from "@/lib/watch/dispose";
 
 /**
  * The collection is the same watch four times over, so it is shown the
@@ -26,7 +27,6 @@ import { createDialTexture } from "@/lib/watch/dialTexture";
 
 export interface CollectionModel {
   ref: string;
-  name: string;
   dial: string;
   marker: string;
   hand: string;
@@ -65,7 +65,9 @@ function useShared() {
       caseBand,
       dial: new CircleGeometry(DIAL_R, 72),
       steel,
-      dialTexture: createDialTexture(),
+      // These render at roughly 180px across and never get closer, so
+      // there is nothing to gain from the full-size dial.
+      dialTexture: createDialTexture(256),
     };
   }, []);
 }
@@ -88,7 +90,7 @@ function MiniWatch({
   const group = useRef<Group>(null);
   const hourHand = useRef<Group>(null);
   const minuteHand = useRef<Group>(null);
-  const { size, camera } = useThree();
+  const { size, camera, gl } = useThree();
 
   const materials = useMemo(() => {
     const dial = new MeshPhysicalMaterial({
@@ -115,6 +117,8 @@ function MiniWatch({
     return { dial, marker, hand };
   }, [model, shared.dialTexture]);
 
+  useEffect(() => () => disposeAll(Object.values(materials)), [materials]);
+
   const markers = useMemo(() => {
     const out: { x: number; y: number; a: number }[] = [];
     for (let i = 0; i < 12; i += 1) {
@@ -125,28 +129,57 @@ function MiniWatch({
     return out;
   }, []);
 
+  /*
+    Where this watch sits is a function of layout, not of scroll: the
+    card and the canvas move together, and only the difference between
+    them is used. Measuring it in the render loop meant two forced
+    layout flushes per watch per frame. Measure it when the layout can
+    actually have changed instead.
+  */
+  const placement = useRef({ x: 0, y: 0, scale: 1 });
+
+  useEffect(() => {
+    const measure = () => {
+      const slot = slots.current?.[index];
+      const canvas = gl.domElement;
+      if (!slot || !canvas) return;
+
+      const box = slot.getBoundingClientRect();
+      const canvasBox = canvas.getBoundingClientRect();
+      const fov = (camera as { fov: number }).fov;
+      const visibleHeight =
+        2 * Math.tan(((fov * Math.PI) / 180) / 2) * camera.position.z;
+      const unitsPerPixel = visibleHeight / size.height;
+
+      placement.current = {
+        x:
+          (box.left + box.width / 2 - (canvasBox.left + canvasBox.width / 2)) *
+          unitsPerPixel,
+        y:
+          -(box.top + box.height / 2 - (canvasBox.top + canvasBox.height / 2)) *
+          unitsPerPixel,
+        scale: (box.width * 0.46 * unitsPerPixel) / CASE_R,
+      };
+    };
+
+    const frame = requestAnimationFrame(measure);
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", measure);
+    };
+  }, [index, slots, camera, gl, size.width, size.height]);
+
   useFrame((state, delta) => {
     const node = group.current;
-    const slot = slots.current?.[index];
-    if (!node || !slot) return;
+    if (!node) return;
 
-    // Place the watch over its own card, in world units.
-    const box = slot.getBoundingClientRect();
-    const canvasBox = state.gl.domElement.getBoundingClientRect();
-    const visibleHeight =
-      2 * Math.tan((((camera as { fov: number }).fov * Math.PI) / 180) / 2) *
-      camera.position.z;
-    const unitsPerPixel = visibleHeight / size.height;
+    const { x, y, scale } = placement.current;
+    node.position.x = x;
+    node.position.y = y;
+    node.scale.setScalar(scale);
 
-    node.position.x =
-      (box.left + box.width / 2 - (canvasBox.left + canvasBox.width / 2)) *
-      unitsPerPixel;
-    node.position.y =
-      -(box.top + box.height / 2 - (canvasBox.top + canvasBox.height / 2)) *
-      unitsPerPixel;
-    node.scale.setScalar((box.width * 0.46 * unitsPerPixel) / CASE_R);
-
-    const now = new Date();
+    const now = new Date(Date.now());
     const minuteOf = now.getMinutes() + now.getSeconds() / 60;
     const hourOf = (now.getHours() % 12) + minuteOf / 60;
     if (hourHand.current) {
@@ -231,6 +264,8 @@ export function CollectionStage({
   hovered: RefObject<number>;
 }) {
   const shared = useShared();
+
+  useEffect(() => () => disposeAll(Object.values(shared)), [shared]);
   const [live, setLive] = useState(false);
   const host = useRef<HTMLDivElement>(null);
 
@@ -259,6 +294,11 @@ export function CollectionStage({
         }}
         camera={{ fov: 24, near: 0.1, far: 40, position: [0, 0, 9] }}
       >
+        {/*
+          Lightformer children only. Do not add a `preset` or `files`
+          prop: drei fetches those HDRIs from raw.githack.com, which the
+          Content-Security-Policy blocks.
+        */}
         <Environment resolution={128} frames={1}>
           <color attach="background" args={["#0a0908"]} />
           <Lightformer

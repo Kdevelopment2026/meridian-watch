@@ -22,10 +22,14 @@ import {
 import {
   createCrocTexture,
   createDialTexture,
-  createPlateTexture,
 } from "@/lib/watch/dialTexture";
 import { PART_BY_ID, partProgress, type PartId } from "@/lib/watch/parts";
-import { registerAnchor, stage } from "@/lib/watch/stage";
+import {
+  registerAnchor,
+  stage,
+  type StageQuality,
+} from "@/lib/watch/stage";
+import { disposeAll } from "@/lib/watch/dispose";
 import { Movement } from "./Movement";
 
 /* ------------------------------------------------------------------ */
@@ -41,7 +45,7 @@ const BAND_BOTTOM = -0.16;
 /* Materials                                                           */
 /* ------------------------------------------------------------------ */
 
-function useWatchMaterials(quality: "high" | "low") {
+function useWatchMaterials(quality: StageQuality) {
   return useMemo(() => {
     const polishedSteel = new MeshPhysicalMaterial({
       color: "#d5d8da",
@@ -64,19 +68,7 @@ function useWatchMaterials(quality: "high" | "low") {
       envMapIntensity: 2.2,
     });
 
-    const brass = new MeshPhysicalMaterial({
-      color: "#b18a46",
-      metalness: 1,
-      roughness: 0.26,
-      envMapIntensity: 1.25,
-    });
 
-    const darkBrass = new MeshPhysicalMaterial({
-      color: "#7d6132",
-      metalness: 1,
-      roughness: 0.42,
-      envMapIntensity: 0.95,
-    });
 
     const handSteel = new MeshPhysicalMaterial({
       color: "#eef1f3",
@@ -119,23 +111,7 @@ function useWatchMaterials(quality: "high" | "low") {
       envMapIntensity: quality === "high" ? 0.75 : 0.6,
     });
 
-    const ruby = new MeshPhysicalMaterial({
-      color: "#8f1d21",
-      metalness: 0,
-      roughness: 0.12,
-      thickness: 0.05,
-      transparent: true,
-      opacity: 0.95,
-      envMapIntensity: 1.4,
-    });
 
-    const plate = new MeshStandardMaterial({
-      map: createPlateTexture(fine ? 512 : 256),
-      color: "#9aa1a3",
-      metalness: 0.9,
-      roughness: 0.4,
-      envMapIntensity: 1,
-    });
 
     const dialFace = new MeshPhysicalMaterial({
       map: createDialTexture(fine ? 1024 : 512),
@@ -146,12 +122,6 @@ function useWatchMaterials(quality: "high" | "low") {
       envMapIntensity: 0.85,
     });
 
-    const bridgeMetal = new MeshStandardMaterial({
-      color: "#c4c8c9",
-      metalness: 0.5,
-      roughness: 0.34,
-      envMapIntensity: 0.9,
-    });
 
     const gasket = new MeshStandardMaterial({
       color: "#151310",
@@ -163,14 +133,9 @@ function useWatchMaterials(quality: "high" | "low") {
       polishedSteel,
       brushedSteel,
       markerSteel,
-      brass,
-      darkBrass,
       handSteel,
       leather,
       sapphire,
-      ruby,
-      plate,
-      bridgeMetal,
       dialFace,
       gasket,
     };
@@ -329,20 +294,28 @@ function useWatchGeometry() {
         ),
       });
 
+    /* The two halves now meet behind the case and buckle together, so
+       the strap is a closed loop rather than two loose ends. Each half
+       rises over its lug, arcs back, and comes to the fastening at
+       roughly the height of the case centre. */
     const upperPath: [number, number, number][] = [
       [0, 1.0, -0.02],
-      [0, 1.42, -0.18],
-      [0, 1.76, -0.58],
-      [0, 1.93, -1.06],
-      [0, 1.88, -1.5],
+      [0, 1.46, -0.18],
+      [0, 1.8, -0.6],
+      [0, 1.82, -1.08],
+      [0, 1.5, -1.44],
+      [0, 1.0, -1.58],
+      [0, 0.42, -1.6],
     ];
 
     const lowerPath: [number, number, number][] = [
       [0, -1.0, -0.02],
-      [0, -1.42, -0.18],
-      [0, -1.78, -0.6],
-      [0, -1.95, -1.08],
-      [0, -1.9, -1.52],
+      [0, -1.46, -0.18],
+      [0, -1.82, -0.6],
+      [0, -1.84, -1.08],
+      [0, -1.5, -1.44],
+      [0, -0.95, -1.58],
+      [0, -0.3, -1.6],
     ];
 
     /* ExtrudeGeometry maps UVs from world position, which on a band
@@ -369,16 +342,21 @@ function useWatchGeometry() {
     layStrapUvs(strapTop);
     layStrapUvs(strapBottom);
 
-    const tip = new Vector3(...upperPath[upperPath.length - 1]);
-    const before = new Vector3(...upperPath[upperPath.length - 2]);
-    const heading = tip.clone().sub(before).normalize();
-    const buckle = {
-      position: tip.clone().add(heading.clone().multiplyScalar(0.19)),
-      quaternion: new Quaternion().setFromUnitVectors(
-        new Vector3(0, 1, 0),
-        heading,
-      ),
+    const seatOn = (path: [number, number, number][], along: number) => {
+      const tip = new Vector3(...path[path.length - 1]);
+      const before = new Vector3(...path[path.length - 2]);
+      const heading = tip.clone().sub(before).normalize();
+      return {
+        position: tip.clone().add(heading.clone().multiplyScalar(along)),
+        quaternion: new Quaternion().setFromUnitVectors(
+          new Vector3(0, 1, 0),
+          heading,
+        ),
+      };
     };
+
+    const buckle = seatOn(upperPath, 0.16);
+    const keeper = seatOn(lowerPath, 0.1);
 
     return {
       caseBand,
@@ -392,6 +370,7 @@ function useWatchGeometry() {
       strapTop,
       strapBottom,
       buckle,
+      keeper,
     };
   }, []);
 }
@@ -548,6 +527,27 @@ function AppliedIndices({
   return <group>{markers}</group>;
 }
 
+/**
+ * The keeper: the loop the free end of a strap is threaded back
+ * through once the buckle is closed. It is what makes the two halves
+ * read as fastened rather than as two pieces that happen to touch.
+ */
+function Keeper({
+  materials,
+  seat,
+}: {
+  materials: Materials;
+  seat: { position: Vector3; quaternion: Quaternion };
+}) {
+  return (
+    <group position={seat.position} quaternion={seat.quaternion}>
+      <mesh rotation={[Math.PI / 2, 0, 0]} material={materials.leather}>
+        <torusGeometry args={[0.56, 0.034, 8, 40]} />
+      </mesh>
+    </group>
+  );
+}
+
 /** Pin buckle, seated on the end of the strap and aligned to its run. */
 function Buckle({
   materials,
@@ -594,9 +594,14 @@ function Buckle({
 
 const TURN = Math.PI * 2;
 
-export function WatchModel({ quality }: { quality: "high" | "low" }) {
+export function WatchModel({ quality }: { quality: StageQuality }) {
   const materials = useWatchMaterials(quality);
   const geo = useWatchGeometry();
+
+  // Both sets are rebuilt when the quality changes, so the old ones
+  // have to hand their GPU resources back.
+  useEffect(() => () => disposeAll(Object.values(materials)), [materials]);
+  useEffect(() => () => disposeAll(Object.values(geo)), [geo]);
   const hour = useRef<Mesh>(null);
   const minute = useRef<Mesh>(null);
   const seconds = useRef<Mesh>(null);
@@ -627,6 +632,7 @@ export function WatchModel({ quality }: { quality: "high" | "low" }) {
         <mesh geometry={geo.strapTop} material={materials.leather} />
         <mesh geometry={geo.strapBottom} material={materials.leather} />
         <Buckle materials={materials} seat={geo.buckle} />
+        <Keeper materials={materials} seat={geo.keeper} />
       </PartGroup>
 
       <PartGroup id="caseback">
@@ -659,7 +665,7 @@ export function WatchModel({ quality }: { quality: "high" | "low" }) {
         {/* The caliber runs: geared train, stepping escape wheel and an
             oscillating balance on its hairspring. */}
         <group position={[0, 0, -0.26]}>
-          <Movement />
+          <Movement quality={quality} />
         </group>
       </PartGroup>
 

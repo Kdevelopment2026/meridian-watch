@@ -5,7 +5,11 @@ import { gsap } from "gsap";
 
 import { registerScrollPlugins } from "@/lib/scroll";
 import { SETTLE_PROGRESS, WATCH_PARTS, type WatchPart } from "@/lib/watch/parts";
-import { stage, type StageMode } from "@/lib/watch/stage";
+import {
+  stage,
+  type StageMode,
+  type StageQuality,
+} from "@/lib/watch/stage";
 
 export interface ExplodeSequenceTargets {
   section: RefObject<HTMLElement | null>;
@@ -18,9 +22,18 @@ export interface ExplodeSequenceTargets {
 
 export interface ExplodeSequenceState {
   mode: StageMode;
+  /**
+   * How much the scene is allowed to spend. Decided here and passed
+   * down, so the canvas, the watch and the caliber can never disagree
+   * about it.
+   */
+  quality: StageQuality;
   /** Only used by the small-viewport caption. */
   activePart: WatchPart | null;
 }
+
+/** Walked back to front to find the part that has most recently settled. */
+const NEWEST_FIRST = [...WATCH_PARTS].reverse();
 
 const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
 const COMPACT_QUERY = "(max-width: 820px)";
@@ -47,6 +60,7 @@ export function useExplodeSequence(
   // The server has no media queries, so the first paint uses the desktop
   // layout and the real mode is settled on mount.
   const [mode, setMode] = useState<StageMode>("scrub");
+  const [quality, setQuality] = useState<StageQuality>("high");
   const [activePart, setActivePart] = useState<WatchPart | null>(null);
 
   useEffect(() => {
@@ -68,10 +82,13 @@ export function useExplodeSequence(
 
     stage.mode = mode;
     stage.compact = mode === "auto";
-    stage.quality =
+    // A small screen or a thin CPU both mean the same thing here.
+    const next: StageQuality =
       mode === "auto" || (navigator.hardwareConcurrency ?? 8) <= 4
         ? "low"
         : "high";
+    stage.quality = next;
+    setQuality(next);
 
     if (mode === "static") {
       stage.rawProgress = SETTLE_PROGRESS + 0.06;
@@ -94,9 +111,7 @@ export function useExplodeSequence(
       let current: WatchPart | null = null;
       const watchCaption = () => {
         const settled =
-          [...WATCH_PARTS]
-            .reverse()
-            .find((part) => stage.progress >= part.to - 0.04) ?? null;
+          NEWEST_FIRST.find((part) => stage.progress >= part.to - 0.04) ?? null;
         if (settled !== current) {
           current = settled;
           setActivePart(settled);
@@ -147,5 +162,5 @@ export function useExplodeSequence(
     };
   }, [mode, targets.section, targets.pin, targets.intro, targets.cue]);
 
-  return { mode, activePart };
+  return { mode, quality, activePart };
 }

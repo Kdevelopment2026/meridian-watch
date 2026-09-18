@@ -17,9 +17,29 @@ export function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export function isCompactViewport(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(max-width: 820px)").matches;
+let webglSupport: boolean | null = null;
+
+/**
+ * Whether this browser can render the scenes at all.
+ *
+ * Probing acquires a real GL context, so the answer is taken once and
+ * kept: two components asking the question separately were also asking
+ * it by slightly different rules, which is how they end up disagreeing.
+ */
+export function hasWebgl(): boolean {
+  if (webglSupport !== null) return webglSupport;
+  if (typeof document === "undefined") return false;
+  try {
+    const probe = document.createElement("canvas");
+    webglSupport = Boolean(
+      probe.getContext("webgl2") ??
+        probe.getContext("webgl") ??
+        probe.getContext("experimental-webgl"),
+    );
+  } catch {
+    webglSupport = false;
+  }
+  return webglSupport;
 }
 
 /**
@@ -51,6 +71,9 @@ export function initSmoothScroll(): () => void {
 
   return () => {
     gsap.ticker.remove(tick);
+    // lagSmoothing is global, so put GSAP's default back rather than
+    // leaving it disabled for whatever mounts next.
+    gsap.ticker.lagSmoothing(500, 33);
     lenis.destroy();
   };
 }

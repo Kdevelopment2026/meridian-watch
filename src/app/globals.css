@@ -95,45 +95,10 @@ canvas {
   text-wrap: balance;
 }
 
-.type-serif {
-  font-family: var(--font-display);
-  font-optical-sizing: auto;
-  font-weight: 300;
-  letter-spacing: var(--tracking-tight);
-}
 
-.type-label {
-  font-family: var(--font-body);
-  font-size: var(--step--1);
-  font-weight: 500;
-  letter-spacing: var(--tracking-wide);
-  color: var(--color-steel);
-  line-height: var(--leading-snug);
-}
 
-.type-meta {
-  font-family: var(--font-body);
-  font-size: var(--step--2);
-  font-weight: 400;
-  letter-spacing: var(--tracking-wide);
-  color: var(--color-steel);
-  font-variant-numeric: tabular-nums;
-}
 
-.type-body {
-  max-width: var(--measure);
-  color: var(--color-bone-dim);
-  line-height: var(--leading-body);
-  text-wrap: pretty;
-}
 
-.type-lede {
-  font-size: var(--step-1);
-  line-height: var(--leading-loose);
-  color: var(--color-bone-dim);
-  max-width: var(--measure-narrow);
-  text-wrap: pretty;
-}
 
 .numeral {
   font-variant-numeric: tabular-nums lining-nums;
@@ -162,16 +127,10 @@ canvas {
   transform-origin: left center;
 }
 
-.reveal-target {
-  opacity: 0;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .draw-rule {
     transform: none;
-  }
-  .reveal-target {
-    opacity: 1;
   }
   * {
     animation-duration: 1ms !important;

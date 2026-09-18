@@ -2,7 +2,6 @@
 
 import { useEffect, type RefObject } from "react";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { prefersReducedMotion, registerScrollPlugins } from "@/lib/scroll";
 
@@ -44,7 +43,6 @@ export function useDrawnRules(scope: RefObject<HTMLElement | null>): void {
       });
     }, root);
 
-    ScrollTrigger.refresh();
     return () => ctx.revert();
   }, [scope]);
 }

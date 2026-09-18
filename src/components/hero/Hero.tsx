@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 
 import { Action } from "@/components/ui/Action";
+import { hasWebgl } from "@/lib/scroll";
 import { stage } from "@/lib/watch/stage";
 import { CalloutCaption, CalloutLayer } from "./SpecCallout";
 import { useExplodeSequence } from "./useExplodeSequence";
@@ -19,18 +20,6 @@ const ExplodeStage = dynamic(
   },
 );
 
-function hasWebgl(): boolean {
-  try {
-    const probe = document.createElement("canvas");
-    return Boolean(
-      probe.getContext("webgl2") ??
-        probe.getContext("webgl") ??
-        probe.getContext("experimental-webgl"),
-    );
-  } catch {
-    return false;
-  }
-}
 
 export function Hero() {
   const section = useRef<HTMLElement>(null);
@@ -40,7 +29,7 @@ export function Hero() {
   const frame = useRef<HTMLDivElement>(null);
 
   const [webgl, setWebgl] = useState(true);
-  const { mode, activePart } = useExplodeSequence({
+  const { mode, quality, activePart } = useExplodeSequence({
     section,
     pin,
     intro,
@@ -125,6 +114,10 @@ export function Hero() {
       node.removeEventListener("pointermove", move);
       node.removeEventListener("pointerup", up);
       node.removeEventListener("pointercancel", up);
+      // If the viewport class changes mid-drag this effect tears down
+      // before pointerup is ever heard, so release what down() took.
+      if (pointerId !== null) node.releasePointerCapture?.(pointerId);
+      delete node.dataset.dragging;
       stage.dragging = false;
     };
   }, [mode]);
@@ -160,11 +153,7 @@ export function Hero() {
         ) : (
           <div ref={frame} className={styles.frame}>
             <div className={styles.stage}>
-              <ExplodeStage
-                reducedMotion={false}
-                quality={mode === "auto" ? "low" : "high"}
-                paused={!onScreen}
-              />
+              <ExplodeStage quality={quality} paused={!onScreen} />
             </div>
 
             {mode === "auto" ? (

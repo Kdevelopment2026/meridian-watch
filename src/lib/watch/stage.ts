@@ -8,8 +8,9 @@ import type { PartId } from "./parts";
  * writes to and the render loop reads from.
  */
 
+export type StageQuality = "high" | "low";
+
 export type StageMode =
-  | "ambient" /** watch whole, slow turn, before the pin engages */
   | "scrub" /** pinned, disassembling under scroll */
   | "auto" /** small viewports: assemble -> explode -> reassemble on a timer */
   | "static"; /** reduced motion: one held exploded pose */
@@ -27,10 +28,8 @@ export interface StageState {
   dragX: number;
   dragY: number;
   dragging: boolean;
-  /** Set once the scene has rendered its first frame. */
-  ready: boolean;
-  /** Drops transmission and shadow cost on weak hardware. */
-  quality: "high" | "low";
+  /** Drops texture and shadow cost on weak hardware. */
+  quality: StageQuality;
   /** Narrow viewport: the watch centres instead of sitting off-axis. */
   compact: boolean;
 }
@@ -38,13 +37,12 @@ export interface StageState {
 export const stage: StageState = {
   progress: 0,
   rawProgress: 0,
-  mode: "ambient",
+  mode: "scrub",
   pointerX: 0,
   pointerY: 0,
   dragX: 0,
   dragY: 0,
   dragging: false,
-  ready: false,
   quality: "high",
   compact: false,
 };
@@ -57,23 +55,6 @@ export function registerAnchor(id: PartId, object: Object3D | null): void {
   else partAnchors.delete(id);
 }
 
-const readyListeners = new Set<() => void>();
-
-export function onStageReady(listener: () => void): () => void {
-  if (stage.ready) {
-    listener();
-    return () => undefined;
-  }
-  readyListeners.add(listener);
-  return () => readyListeners.delete(listener);
-}
-
-export function markStageReady(): void {
-  if (stage.ready) return;
-  stage.ready = true;
-  readyListeners.forEach((listener) => listener());
-  readyListeners.clear();
-}
 
 export function damp(current: number, target: number, lambda: number, dt: number): number {
   return current + (target - current) * (1 - Math.exp(-lambda * dt));

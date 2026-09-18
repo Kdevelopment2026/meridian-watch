@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import {
   CatmullRomCurve3,
@@ -20,7 +20,9 @@ import {
   createGiltTexture,
   createPerlageTexture,
 } from "@/lib/watch/movementTextures";
-import { stage } from "@/lib/watch/stage";
+import { PART_BY_ID } from "@/lib/watch/parts";
+import { disposeAll } from "@/lib/watch/dispose";
+import { stage, type StageQuality } from "@/lib/watch/stage";
 
 /**
  * The caliber, and it runs.
@@ -36,6 +38,15 @@ import { stage } from "@/lib/watch/stage";
  */
 
 const PLATE_R = 0.78;
+
+/**
+ * The caliber is sealed inside the case until the case-back lifts, so
+ * there is nothing to see — and no reason to turn the train or swing
+ * the balance — before then.
+ */
+function movementIsOut(): boolean {
+  return stage.progress >= PART_BY_ID.movement.from - 0.04;
+}
 
 /* ------------------------------------------------------------------ */
 /* Geometry helpers                                                    */
@@ -128,9 +139,9 @@ function plateShape(input: [number, number][], radius = 0.06): Shape {
 /* Materials                                                           */
 /* ------------------------------------------------------------------ */
 
-function useMovementMaterials() {
+function useMovementMaterials(quality: StageQuality) {
   return useMemo(() => {
-    const fine = stage.quality === "high";
+    const fine = quality === "high";
     const perlage = createPerlageTexture(fine ? 1024 : 512);
     const cotes = createCotesTexture(fine ? 512 : 256);
     cotes.repeat.set(1.6, 1.6);
@@ -188,7 +199,7 @@ function useMovementMaterials() {
         envMapIntensity: 1.8,
       }),
     };
-  }, []);
+  }, [quality]);
 }
 
 type MovementMaterials = ReturnType<typeof useMovementMaterials>;
@@ -237,8 +248,10 @@ function Wheels({ materials }: { materials: MovementMaterials }) {
     [],
   );
 
+  useEffect(() => () => disposeAll(Object.values(geometries)), [geometries]);
+
   useFrame((_, delta) => {
-    if (stage.mode === "static") return;
+    if (!movementIsOut()) return;
     const dt = Math.min(delta, 0.05);
     WHEELS.forEach((wheel) => {
       const node = refs.current[wheel.key];
@@ -311,8 +324,13 @@ function Escapement({ materials }: { materials: MovementMaterials }) {
     return new TubeGeometry(new CatmullRomCurve3(points), 300, 0.0055, 6, false);
   }, []);
 
+  useEffect(
+    () => () => disposeAll([escapeGeometry, hairspring]),
+    [escapeGeometry, hairspring],
+  );
+
   useFrame((_, delta) => {
-    if (stage.mode === "static") return;
+    if (!movementIsOut()) return;
     const dt = Math.min(delta, 0.05);
     // Slowed from a real 4Hz to something the eye can follow.
     beat.current += dt * 1.45;
@@ -448,8 +466,10 @@ function Screws({ materials }: { materials: MovementMaterials }) {
 
 /* ------------------------------------------------------------------ */
 
-export function Movement() {
-  const materials = useMovementMaterials();
+export function Movement({ quality }: { quality: StageQuality }) {
+  const materials = useMovementMaterials(quality);
+
+  useEffect(() => () => disposeAll(Object.values(materials)), [materials]);
 
   const bridges = useMemo(() => {
     const barrel = plateShape(
@@ -499,6 +519,8 @@ export function Movement() {
     };
   }, []);
 
+  useEffect(() => () => disposeAll(Object.values(bridges)), [bridges]);
+
   return (
     <group>
       {/*
@@ -508,7 +530,7 @@ export function Movement() {
         plate catches it.
       */}
       <directionalLight
-        castShadow
+        castShadow={quality === "high"}
         position={[-1.7, 2.1, 2.6]}
         intensity={0.95}
         color="#fff6e6"

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { AdaptiveDpr, Environment, Lightformer } from "@react-three/drei";
+import { Environment, Lightformer } from "@react-three/drei";
 import { ACESFilmicToneMapping, Group, Vector3 } from "three";
 
 import { WatchModel } from "./WatchModel";
@@ -16,9 +16,9 @@ import {
   calloutNodes,
   calloutSurface,
   damp,
-  markStageReady,
   partAnchors,
   stage,
+  type StageQuality,
 } from "@/lib/watch/stage";
 
 function smoothstep(edge0: number, edge1: number, x: number): number {
@@ -36,6 +36,12 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
 /* shadow side from going dead.                                        */
 /* ------------------------------------------------------------------ */
 
+/*
+  Lightformer children only. Do not add a `preset` or `files` prop to
+  the Environment below: drei fetches those HDRIs from raw.githack.com,
+  which is a third-party request the Content-Security-Policy blocks, and
+  the lighting then fails with a console error most people miss.
+*/
 function StudioEnvironment() {
   return (
     <Environment resolution={256} frames={1}>
@@ -305,36 +311,26 @@ function CalloutProjector() {
   return null;
 }
 
-function ReadySignal() {
-  useEffect(() => {
-    const id = requestAnimationFrame(() => markStageReady());
-    return () => cancelAnimationFrame(id);
-  }, []);
-  return null;
-}
-
 /* ------------------------------------------------------------------ */
 
 export interface ExplodeStageProps {
-  /** Kept so the caller can still hold the loop without unmounting. */
-  reducedMotion: boolean;
-  quality: "high" | "low";
+  quality: StageQuality;
   /** True once the hero has scrolled out of view. */
   paused: boolean;
 }
 
-export function ExplodeStage({
-  reducedMotion,
-  quality,
-  paused,
-}: ExplodeStageProps) {
+/*
+  Shadows stay switched on at the canvas whatever the quality. Toggling
+  `shadows` at runtime leaves already-compiled materials sampling a
+  shadow map that has stopped updating, and they are left with a frozen
+  shadow baked on until reload. The quality difference is expressed on
+  the light instead, which three.js does support changing.
+*/
+export function ExplodeStage({ quality, paused }: ExplodeStageProps) {
   return (
     <Canvas
-      shadows={quality === "high" ? "soft" : false}
-      className="stage-canvas"
-      frameloop={
-        reducedMotion ? "demand" : paused ? "never" : "always"
-      }
+      shadows="soft"
+      frameloop={paused ? "never" : "always"}
       dpr={quality === "high" ? [1, 1.75] : [1, 1.1]}
       gl={{
         antialias: true,
@@ -353,8 +349,6 @@ export function ExplodeStage({
       </Rig>
       <CalloutProjector />
 
-      <AdaptiveDpr pixelated={false} />
-      <ReadySignal />
     </Canvas>
   );
 }

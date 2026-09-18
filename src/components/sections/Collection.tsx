@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 
 import { DialMark, type IndexStyle } from "@/components/ui/DialMark";
-import { prefersReducedMotion } from "@/lib/scroll";
+import { hasWebgl, prefersReducedMotion } from "@/lib/scroll";
 import styles from "./Collection.module.css";
 
 const CollectionStage = dynamic(
@@ -20,7 +20,6 @@ interface Model {
   dialFlat: string;
   accent: string;
   indices: IndexStyle;
-  subdial?: boolean;
   /** Live treatment: a tint over the same sunburst the hero dial uses. */
   dial: string;
   marker: string;
@@ -97,14 +96,7 @@ export function Collection() {
         setLive(false);
         return;
       }
-      try {
-        const probe = document.createElement("canvas");
-        setLive(
-          Boolean(probe.getContext("webgl2") ?? probe.getContext("webgl")),
-        );
-      } catch {
-        setLive(false);
-      }
+      setLive(hasWebgl());
     };
 
     decide();
@@ -160,7 +152,6 @@ export function Collection() {
                       dial={model.dialFlat}
                       accent={model.accent}
                       indices={model.indices}
-                      subdial={model.subdial}
                       title={`${model.ref} ${model.name}, drawn dial`}
                     />
                   )}

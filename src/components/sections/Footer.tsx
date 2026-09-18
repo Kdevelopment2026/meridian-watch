@@ -57,8 +57,8 @@ export function Footer() {
         </div>
 
         <div className={styles.base}>
-          <p>© {new Date().getFullYear()} Meridian. All rights reserved.</p>
-          <p>Prices shown before duty. Shipped insured, worldwide.</p>
+          <p>© Meridian. All rights reserved.</p>
+          <p>Shipped insured, worldwide.</p>
         </div>
       </div>
     </footer>

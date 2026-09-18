@@ -4,7 +4,6 @@ export interface DialMarkProps {
   dial: string;
   accent: string;
   indices: IndexStyle;
-  subdial?: boolean;
   title: string;
 }
 
@@ -17,7 +16,6 @@ export function DialMark({
   dial,
   accent,
   indices,
-  subdial = false,
   title,
 }: DialMarkProps) {
   const marks = Array.from({ length: 12 }, (_, i) => {
@@ -104,17 +102,6 @@ export function DialMark({
         />
       ) : null}
 
-      {subdial ? (
-        <circle
-          cx="60"
-          cy="80"
-          r="12"
-          fill="none"
-          stroke={accent}
-          strokeWidth="0.7"
-          opacity="0.75"
-        />
-      ) : null}
 
       {/* Hands at ten past ten */}
       <line x1="60" y1="60" x2="40" y2="43" stroke={accent} strokeWidth="2.6" strokeLinecap="round" />

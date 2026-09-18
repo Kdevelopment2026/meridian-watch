@@ -15,7 +15,6 @@
   --color-pitch: #060504;
   --color-void: #0c0a09;
   --color-graphite: #16130f;
-  --color-graphite-lit: #211c16;
   --color-hairline: #2b251d;
   --color-steel-dim: #4a4238;
   --color-steel: #7b7368;
@@ -26,11 +25,7 @@
 
   /* Alpha variants for glass surfaces and scrims */
   --scrim-deep: rgb(6 5 4 / 0.92);
-  --scrim-mid: rgb(6 5 4 / 0.62);
-  --scrim-soft: rgb(6 5 4 / 0.28);
-  --glass: rgb(22 19 15 / 0.72);
   --brass-veil: rgb(169 129 60 / 0.16);
-  --bone-veil: rgb(239 233 222 / 0.08);
 
   /* ---------------------------------------------------------------
      Type — Fraunces carries the voice (optical sizing, a touch of
@@ -48,10 +43,7 @@
   --step-2: clamp(1.35rem, 1.2rem + 0.75vw, 1.75rem);
   --step-3: clamp(1.7rem, 1.4rem + 1.5vw, 2.5rem);
   --step-4: clamp(2.1rem, 1.5rem + 3vw, 3.75rem);
-  --step-5: clamp(2.6rem, 1.4rem + 6vw, 5.75rem);
-  --step-6: clamp(3.1rem, 1rem + 10.5vw, 9rem);
 
-  --leading-tight: 0.98;
   --leading-display: 1.04;
   --leading-snug: 1.3;
   --leading-body: 1.62;
@@ -65,13 +57,11 @@
 
   --measure-narrow: 34ch;
   --measure: 58ch;
-  --measure-wide: 68ch;
 
   /* ---------------------------------------------------------------
      Space — a 4px base with a loose upper end. Luxury lives in the
      gaps, so the section rhythm is unusually generous.
      --------------------------------------------------------------- */
-  --space-3xs: 0.25rem;
   --space-2xs: 0.5rem;
   --space-xs: 0.75rem;
   --space-s: 1rem;
@@ -96,16 +86,14 @@
   --dur-slow: 900ms;
   --dur-glacial: 1600ms;
 
-  /* Hero interaction geometry */
-  --pin-distance: 320vh;
-  --pin-distance-compact: 180vh;
+  /* The pinned scroll distance lives in useExplodeSequence, because it
+     is measured against the live viewport height rather than set here. */
   --nav-height: 4.5rem;
 
   --z-stage: 0;
   --z-content: 10;
   --z-callout: 20;
   --z-nav: 40;
-  --z-overlay: 60;
 }
 
 @media (prefers-reduced-motion: reduce) {
