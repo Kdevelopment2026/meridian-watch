@@ -167,9 +167,6 @@ export function Hero() {
               />
             </div>
 
-            <div className={styles.vignette} />
-            <div className={styles.grain} />
-
             {mode === "auto" ? (
               <CalloutCaption part={activePart} />
             ) : (

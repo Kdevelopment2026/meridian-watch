@@ -2,13 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
-import {
-  AdaptiveDpr,
-  ContactShadows,
-  Environment,
-  Lightformer,
-} from "@react-three/drei";
+import { AdaptiveDpr, Environment, Lightformer } from "@react-three/drei";
 import { ACESFilmicToneMapping, Group, Vector3 } from "three";
 
 import { WatchModel } from "./WatchModel";
@@ -311,36 +305,6 @@ function CalloutProjector() {
   return null;
 }
 
-/**
- * The shadow the watch drops onto the surface it is standing on. It
- * grounds the object without putting anything behind it, and it fades
- * away as the parts lift clear.
- */
-function Ground() {
-  const shadow = useRef<Group>(null);
-
-  useFrame(() => {
-    const node = shadow.current;
-    if (!node) return;
-    const fade = 1 - smoothstep(0.02, 0.4, stage.progress);
-    node.visible = fade > 0.02;
-    node.scale.setScalar(1 + (1 - fade) * 0.4);
-  });
-
-  return (
-    <group ref={shadow} position={[0, -1.34, 0]}>
-      <ContactShadows
-        opacity={0.62}
-        scale={9}
-        blur={2.6}
-        far={2.4}
-        resolution={256}
-        color="#000000"
-      />
-    </group>
-  );
-}
-
 function ReadySignal() {
   useEffect(() => {
     const id = requestAnimationFrame(() => markStageReady());
@@ -387,26 +351,7 @@ export function ExplodeStage({
       <Rig>
         <WatchModel quality={quality} />
       </Rig>
-      <Ground />
       <CalloutProjector />
-
-      {/*
-        A camera, not a renderer: the brightest edges of the polish
-        bloom, and the frame falls off at the corners.
-
-        No depth of field. At this focal length the whole watch sits
-        inside one focal plane, so every setting that blurred the
-        background blurred the dial with it.
-      */}
-      <EffectComposer enableNormalPass={false} multisampling={4}>
-        <Bloom
-          intensity={0.22}
-          luminanceThreshold={0.86}
-          luminanceSmoothing={0.35}
-          mipmapBlur
-        />
-        <Vignette offset={0.26} darkness={0.62} eskil={false} />
-      </EffectComposer>
 
       <AdaptiveDpr pixelated={false} />
       <ReadySignal />
